@@ -3,6 +3,7 @@ import BaseAlert from "../components/BaseAlert";
 import BaseButton from "../components/BaseButton";
 import BaseCheckbox from "../components/BaseCheckbox";
 import BaseInput from "../components/BaseInput";
+import BaseImage from "../components/BaseImage";
 import FileSelect from "../components/FileSelect";
 import BasePagination from "../components/BasePagination";
 import BaseProgress from "../components/BaseProgress";
@@ -21,6 +22,7 @@ export default {
     Vue.component(BaseAlert.name, BaseAlert);
     Vue.component(BaseButton.name, BaseButton);
     Vue.component(BaseInput.name, BaseInput);
+    Vue.component(BaseImage.name, BaseImage);
     Vue.component(FileSelect.name, FileSelect);
     Vue.component(BaseCheckbox.name, BaseCheckbox);
     Vue.component(BasePagination.name, BasePagination);

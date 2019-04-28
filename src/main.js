@@ -2,7 +2,7 @@ import Vue from "vue";
 import axios from "axios";
 import App from "./App.vue";
 import router from "./router";
-import { store } from "./store";
+import store from "./store";
 import Vuelidate from "vuelidate";
 import VueSelect from "vue-select";
 import VueMoment from "vue-moment";

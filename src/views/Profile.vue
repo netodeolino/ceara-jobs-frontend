@@ -12,8 +12,7 @@
               <div class="col-lg-3 order-lg-2">
                 <div class="card-profile-image">
                   <a href="#">
-                    <img v-if="user && user.path_image" v-lazy="`${user.path_image}`" class="rounded-circle">
-                    <img v-else v-lazy="'img/theme/team-4-800x800.jpg'" class="rounded-circle">
+                    <base-image :src="user.path_image" errorImage="img/brand/user_default.png" class="rounded-circle" />
                   </a>
                 </div>
               </div>
@@ -53,28 +52,13 @@
   </div>
 </template>
 <script>
-import axios from "axios";
-import { BASE_URL } from "../constants/api";
+import { mapState } from "vuex";
+
 export default {
   name: "profile",
-  data() {
-    return {
-      user: {},
-      BASE_URL
-    };
-  },
-  created() {
-    this.loading = true;
-    axios
-      .get(`${BASE_URL}user/${this.$route.params.id}`)
-      .then(res => {
-        this.loading = false;
-        this.user = res.data;
-      })
-      .catch(err => {
-        console.log(err.response);
-      });
-  }
+  computed: mapState({
+    user: state => state.user.data,
+  })
 };
 </script>
 <style>

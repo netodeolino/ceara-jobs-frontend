@@ -1,8 +1,6 @@
 import Vue from "vue";
 import Router from "vue-router";
 
-import axios from "axios";
-
 import Profile from "./views/Profile.vue";
 
 import AppHeader from "./layout/AppHeader";
@@ -13,9 +11,18 @@ import Vacancies from "./views/Vacancies.vue";
 import Vacancy from "./views/Vacancy.vue";
 import RegisterVacancy from "./views/RegisterVacancy.vue";
 import Terms from "./views/Terms.vue";
-import { BASE_URL, GET_TOKEN_URL } from "./constants/api";
+import store from "./store";
 
 Vue.use(Router);
+
+const authValidation = next => {
+  const token = store.state.user.data.token;
+  if (token != null) {
+    next();
+  } else {
+    next("/login");
+  }
+};
 
 export default new Router({
   linkExactActiveClass: "active",
@@ -64,26 +71,7 @@ export default new Router({
         default: RegisterVacancy,
         footer: AppFooter
       },
-      beforeEnter: (to, from, next) => {
-        if (window.localStorage.getItem("token") != null) {
-          axios
-            .get(`${BASE_URL}${GET_TOKEN_URL}`, {
-              headers: {
-                // eslint-disable-next-line
-                "Authorization": `bearer ${window.localStorage.getItem("token")}`
-              }
-            })
-            .then(() => {
-              next();
-            })
-            .catch(() => {
-              window.localStorage.removeItem("token");
-              next("/");
-            });
-        } else {
-          next("/");
-        }
-      }
+      beforeEnter: (to, from, next) => authValidation(next)
     },
     {
       path: "/profile/:id",
@@ -92,7 +80,8 @@ export default new Router({
         header: AppHeader,
         default: Profile,
         footer: AppFooter
-      }
+      },
+      beforeEnter: (to, from, next) => authValidation(next)
     },
     {
       path: "/terms",
