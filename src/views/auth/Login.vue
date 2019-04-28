@@ -1,25 +1,45 @@
 <template>
   <section class="section section-shaped section-lg my-0">
-    <div class="shape shape-style-1 bg-gradient-default">
-    </div>
+    <div class="shape shape-style-1 bg-gradient-default"></div>
     <div class="container pt-lg-md">
       <div class="row justify-content-center">
         <div class="col-lg-5">
-          <card type="secondary" shadow
-              header-classes="bg-white pb-5"
-              body-classes="px-lg-5 py-lg-5"
-              class="border-0">
+          <card
+            type="secondary"
+            shadow
+            header-classes="bg-white pb-5"
+            body-classes="px-lg-5 py-lg-5"
+            class="border-0"
+          >
             <template>
               <div class="text-center text-muted mb-4">
                 <small>Digite seu email e sua senha</small>
               </div>
               <form role="form" @submit.prevent="onSubmit()">
-                <base-input id="email-input" alternative class="mb-3" placeholder="Email" addon-left-icon="fa fa-envelope-o" required v-model="email"
-                  :valid="$v.email.required && $v.email.email" :error="errorEmail" v-on:blur="dirtyEmail">
-                </base-input>
-                <base-input id="password-input" alternative type="password" placeholder="Senha" addon-left-icon="fa fa-unlock-alt" required v-model="password"
-                  :valid="$v.password.required && $v.password.minLength" :error="errorPassword" v-on:blur="dirtyPassword">
-                </base-input>
+                <base-input
+                  id="email-input"
+                  alternative
+                  class="mb-3"
+                  placeholder="Email"
+                  addon-left-icon="fa fa-envelope-o"
+                  required
+                  v-model="email"
+                  :valid="$v.email.required && $v.email.email"
+                  :error="errorEmail"
+                  v-on:blur="dirtyEmail"
+                ></base-input>
+                <base-input
+                  id="password-input"
+                  alternative
+                  type="password"
+                  placeholder="Senha"
+                  addon-left-icon="fa fa-unlock-alt"
+                  required
+                  v-model="password"
+                  :valid="$v.password.required && $v.password.minLength"
+                  :error="errorPassword"
+                  v-on:blur="dirtyPassword"
+                ></base-input>
                 <div class="text-center">
                   <button class="btn btn-primary my-4" type="submit">Entrar</button>
                 </div>
@@ -42,9 +62,8 @@
   </section>
 </template>
 <script>
-import axios from "axios";
+import { mapActions, mapState } from "vuex";
 import { required, minLength, email } from "vuelidate/lib/validators";
-import { BASE_URL, LOGIN_URL } from "../../constants/api";
 
 export default {
   name: "login",
@@ -53,10 +72,10 @@ export default {
     return {
       email: "",
       password: "",
-      loading: false
     };
   },
   methods: {
+    ...mapActions(["doLogin" ]),
     dirtyEmail() {
       this.$v.email.$touch();
     },
@@ -64,41 +83,8 @@ export default {
       this.$v.password.$touch();
     },
     onSubmit() {
-      this.loading = true;
       if (!this.validForm()) return;
-      axios
-        .post(`${BASE_URL}${LOGIN_URL}`, {
-          email: this.email,
-          password: this.password
-        })
-        .then(res => {
-          this.loading = false;
-          window.localStorage.setItem("token", res.data.token);
-          window.localStorage.setItem("setPathImage", res.data.path_image);
-          window.localStorage.setItem("setUserId", res.data.user_id);
-          this.$store.commit("setToken", res.data.token);
-          this.$store.commit("setPathImage", res.data.path_image);
-          this.$store.commit("setUserId", res.data.user_id);
-          this.$notify({
-            group: "not-cea-job",
-            title: "Sucesso!",
-            text: "Login realizado com sucesso!",
-            position: "top right",
-            type: "success"
-          });
-          this.$router.push({ path: "/" });
-        })
-        .catch(err => {
-          console.log(err.response);
-          this.loading = false;
-          this.$notify({
-            group: "not-cea-job",
-            title: "Erro!",
-            text: `${err.response.data.message}`,
-            position: "top right",
-            type: "error"
-          });
-        });
+      this.doLogin({email: this.email, password: this.password});
     },
     validForm() {
       this.dirtyPassword();
@@ -108,6 +94,12 @@ export default {
     }
   },
   computed: {
+    ...mapState({
+      isLogged: state => state.user.isLogged,
+      loading: state => state.user.loading,
+      feedbackTitle: state => state.user.feedbackTitle,
+      feedbackMessage: state => state.user.feedbackMessage,
+    }),
     errorEmail() {
       if (!this.$v.email.required && this.$v.email.$dirty) {
         return "Campo obrigatório.";
@@ -127,6 +119,21 @@ export default {
         } caracteres.`;
       }
       return null;
+    },
+  },
+  watch: {
+    loading: function(newValue, oldValue) {
+      const loadEnd = !newValue && oldValue;
+      if (loadEnd) {
+        this.$notify({
+          group: "not-cea-job",
+          title: this.feedbackTitle,
+          text: this.feedbackMessage,
+          position: "top right",
+          type: this.isLogged ? "success" : "error"
+        });
+        if (this.isLogged) this.$router.push({ path: "/" });
+      }
     }
   },
   validations: {
