@@ -43,6 +43,7 @@
 </template>
 <script>
 import axios from "axios";
+import { mapState } from "vuex";
 import { cities } from "../assets/json/states.json";
 import { typesHiring } from "../assets/json/type-hiring.json";
 import { required, minLength, email } from "vuelidate/lib/validators";
@@ -63,6 +64,9 @@ export default {
       loading: false,
       levelsExperience
     };
+  },
+  created: function() {
+    this.vacancy.email = this.userEmail;
   },
   methods: {
     dirtyTitle() {
@@ -88,8 +92,7 @@ export default {
     },
     onSubmit() {
       this.loading = true;
-      if (window.localStorage.getItem("token") != null && this.validForm()) {
-        const token = window.localStorage.getItem("token");
+      if (this.isLogged) {
         let formData = new FormData();
         formData.append("image", this.image);
         formData.append("data", JSON.stringify(this.vacancy));
@@ -97,12 +100,12 @@ export default {
           .post(`${BASE_URL}${REGISTER_VACANCY_URL}`, formData, {
             headers: {
               // eslint-disable-next-line
-              "Authorization": `bearer ${token}`,
+              "Authorization": `bearer ${this.authToken}`,
               "Content-Type": "multipart/form-data"
             }
           })
           .then(() => {
-            this.loading = false;
+            this.loading = false; 
             this.$notify({
               group: "not-cea-job",
               title: "Sucesso!",
@@ -145,6 +148,11 @@ export default {
     }
   },
   computed: {
+    ...mapState({
+      userEmail: state => state.user.data.email,
+      isLogged: state => state.user.isLogged,
+      authToken: state => state.user.data.token
+    }),
     errorTitle() {
       if (this.$v.vacancy.title.$dirty) {
         if (!this.$v.vacancy.title.required) {

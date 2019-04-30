@@ -37,10 +37,12 @@
                 </p>
               </div>
               <div class="col-lg-3 ml-lg-auto">
-                <img v-if="vac && vac.path_image" v-lazy="`${vac.path_image}`"
-                  class="rounded-circle img-center img-fluid shadow shadow-lg--hover" style="margin-bottom: 10px;">
+                <base-image v-if="vac && vac.path_image" :src="vac.path_image" 
+                  errorImage="img/theme/img-1-1200x1000.jpg"
+                  class="rounded-circle img-center img-fluid shadow shadow-lg--hover"
+                  style="margin-bottom: 10px;" />
                 <img v-else v-lazy="'img/theme/img-1-1200x1000.jpg'" style="margin-bottom: 10px;"
-                  class="rounded-circle img-center img-fluid shadow shadow-lg--hover">
+                  class="rounded-circle img-center img-fluid shadow shadow-lg--hover" />
                 <base-button tag="button" type="white" block size="lg" v-on:click="openVacancy(vac.id)">
                   Ver vaga
                 </base-button>
@@ -48,7 +50,7 @@
             </div>
           </div>
         </card>
-        <base-pagination align="end" :total="totalPagination" v-on:input="pageIndex" :value="pageValue">
+        <base-pagination align="end" :total="totalVacancies" v-on:input="nextPage" :value="pageValue">
         </base-pagination>
       </div>
     </section>
@@ -57,8 +59,7 @@
 
 <script>
 import BasePagination from "../components/BasePagination";
-import axios from "axios";
-import { BASE_URL, GET_VACANCY_LIST } from "../constants/api";
+import { mapActions, mapState } from "vuex";
 export default {
   name: "vacancies",
   components: {
@@ -66,51 +67,45 @@ export default {
   },
   data() {
     return {
-      loading: false,
       vacancies: [],
-      totalVacancies: 0,
       paginateIndex: 1,
-      BASE_URL
     };
   },
   created() {
-    this.getCount();
-    this.getVacancies();
+    this.getInitialVacancies();
+    if (this.getVacanciesPage)
+      this.getVacanciesPage();
   },
   methods: {
-    getVacancies: function() {
-      this.loading = true;
-      axios
-        .get(`${BASE_URL}${GET_VACANCY_LIST}${this.paginateIndex}`)
-        .then(res => {
-          this.loading = false;
-          this.vacancies = res.data;
-        })
-        .catch(err => {
-          console.log(err.response);
-        });
-    },
-    getCount: function() {
-      this.loading = true;
-      axios
-        .get(`${BASE_URL}listlength`)
-        .then(res => {
-          this.loading = false;
-          this.totalVacancies = res.data;
-        })
-        .catch(err => {
-          console.log(err.response);
-        });
-    },
+    ...mapActions(["getInitialVacancies", "getVacancies"]),
     openVacancy: function(id) {
       this.$router.push({ path: `/vacancy/${id}` });
     },
-    pageIndex: function(event) {
+    nextPage: function(event) {
       this.paginateIndex = event;
-      this.getVacancies();
+      if (this.getVacanciesPage)
+        this.getVacanciesPage();
+      const nextRequestPage = this.paginateIndex + 4;
+      if (this.totalPages >= nextRequestPage)
+        this.getVacancies(nextRequestPage);
     }
   },
   computed: {
+    ...mapState({
+      vacanciesList: (state) => state.vacancy.vacancies,
+      totalPages: (state) => state.vacancy.totalPages,
+      totalVacancies: state => state.vacancy.totalVacancies,
+      loading: state => state.vacancy.loading,
+      feedbackTitle: state => state.vacancy.feedbackTitle,
+      feedbackMessage: state => state.vacancy.feedbackMessage,
+    }),
+    getVacanciesPage() {
+      if (this.vacanciesList) {
+        const startIndex = (this.paginateIndex - 1) * 5;
+        const endIndex = startIndex + 5;
+        this.vacancies = this.vacanciesList.slice(startIndex, endIndex); 
+      }
+    },
     totalPagination() {
       return this.totalVacancies;
     },

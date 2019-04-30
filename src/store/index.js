@@ -3,11 +3,12 @@ import Vuex from "vuex";
 import createPersistedState from "vuex-persistedstate";
 
 import user from "./user";
+import vacancy from "./vacancy";
 
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
-  modules: { user },
+  modules: { user, vacancy },
   plugins: [
     createPersistedState({
       reducer: persistedState => {

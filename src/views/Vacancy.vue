@@ -17,8 +17,10 @@
           <div v-else class="row row-grid align-items-center">
             <div class="col-md-3">
               <div class="card bg-default shadow border-0">
-                <img v-if="user && user.path_image" v-lazy="`${user.path_image}`" class="card-img-top">
-                <img v-else v-lazy="'img/theme/img-1-1200x1000.jpg'" class="card-img-top">
+                <base-image v-if="user && user.path_image" :src="user.path_image" 
+                  errorImage="img/theme/img-1-1200x1000.jpg"
+                  class="card-img-top" />
+                <img v-else v-lazy="'img/theme/img-1-1200x1000.jpg'" class="card-img-top" />
                 <blockquote class="card-blockquote">
                   <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 583 95" class="svg-bg">
                     <polygon points="0,52 583,95 0,95" class="fill-default"></polygon>
